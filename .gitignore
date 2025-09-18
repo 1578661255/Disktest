@@ -1,0 +1,9 @@
+# build Path
+build-TcpClient-*
+build-TcpServer-*
+TcpClient/build/
+TcpServer/build/
+
+# config
+TcpClient/TcpClient.pro.user
+TcpServer/TcpServer.pro.user
