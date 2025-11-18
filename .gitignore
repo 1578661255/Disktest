@@ -1,0 +1,11 @@
+# Qt Creator build folders
+build-*/
+
+# Qt 用户配置（绝对不要上传）
+*.pro.user
+*.user
+
+# 编译缓存
+*.o
+*.obj
+
