@@ -358,7 +358,7 @@ void Book::uploadFileData()
         // emit uploadProgress(totalSent, m_currentUploadFileSize);
     }
 
-    file.close();
+    file.close(); 
 
     // 上传完成，清除断点
     clearUploadOffset(m_currentUploadFileName);

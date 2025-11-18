@@ -24,6 +24,7 @@ void TcpServer::loadConfig()
     QFile file(":/server.config");
     // 设置打开方式，尝试打开
     if(file.open(QIODevice::ReadOnly)) {
+        qDebug()<<"loadConfig::open OK";
         // 进行文件读取
         QByteArray btData = file.readAll();
         // 转换为 char *

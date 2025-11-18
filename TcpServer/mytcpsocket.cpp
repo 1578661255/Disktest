@@ -72,8 +72,10 @@ void MyTcpSocket::recvMsg()
     pdu->uiPDULen = uiPDULen;
     // 读取剩余数据内容到通信对象中
     this->read((char*)pdu + sizeof(int), uiPDULen - sizeof(int));
+    qDebug()<<"==========" << pdu->uiMsgType;
     switch(pdu->uiMsgType)
     {
+
     case ENUM_MSG_TYPE_REGIST_REQUEST:
     {
         regist(pdu);
@@ -266,6 +268,7 @@ void MyTcpSocket::login(PDU *pdu)
     // 前32位是账号，后32位是密码
     strncpy(caName, pdu->caData, 32);
     strncpy(caPwd, pdu->caData + 32, 32);
+    qDebug()<<"In Myscok::login::"<<caName<<caPwd;
     // 插入数据库
     bool ret = OpeDB::getInstance().handleLogin(caName, caPwd);
     // 创建回复消息通信对象

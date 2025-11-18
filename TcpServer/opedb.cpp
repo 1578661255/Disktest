@@ -2,6 +2,9 @@
 #include"QMessageBox"
 #include"QDebug"
 #include"QString"
+#include <QSqlError>
+#include <QFileInfo>
+#include <QCoreApplication>
 
 OpeDB::OpeDB(QObject *parent) : QObject(parent)
 {
@@ -30,11 +33,16 @@ void OpeDB::init()
      * :代表读取资源文件下的内容
      * ./ 代表读取可执行程序同目录下的内容
      * */
-    m_db.setDatabaseName("./cloud.db");
+//    qDebug() << "数据库路径：" << QDir::currentPath() + "/cloud.db";
+//    QString dbPath = QCoreApplication::applicationDirPath() + "/cloud.db";
+//    qDebug()<<"dbp::"<<dbPath;
+    m_db.setDatabaseName("D:\\study_my\\projectt\\myDisk\\TcpServer\\cloud.db");
+//    QFileInfo fi("./cloud.db");
+//    qDebug() << "数据库绝对路径：" << fi.absoluteFilePath();
     if(m_db.open())
     {
         QSqlQuery query;
-        query.exec("select * from userInfo");
+        query.exec("select * from usrInfo");
         while(query.next())
         {
             QString data = QString("%1,%2,%3").arg(query.value(0).toString())
@@ -58,7 +66,7 @@ bool OpeDB::handleRegist(const char *name, const char *pwd)
     {
         return false;
     }
-    QString strSql = QString("insert into userInfo(name, pwd) values('%1','%2')").arg(name).arg(pwd);
+    QString strSql = QString("insert into usrInfo(name, pwd) values('%1','%2')").arg(name).arg(pwd);
     QSqlQuery query;
     // 返回sql插入结果
     return query.exec(strSql);
@@ -71,14 +79,22 @@ bool OpeDB::handleLogin(const char *name, const char *pwd)
     {
         return false;
     }
-    QString strSql = QString("select * from userInfo where name = '%1' and pwd = '%2' and online = 0").arg(name).arg(pwd);
+    QString strSql = QString("select * from usrInfo where name = '%1' and pwd = '%2' and online = 0").arg(name).arg(pwd);
+    qDebug()<<"In handLogin::"<<strSql;
     QSqlQuery query;
-    query.exec(strSql);
+    int ret=query.exec(strSql);
+    qDebug()<<ret;
+    if (!ret) {
+        qDebug() << "SQL执行失败：" << query.lastError().text();
+    } else {
+        qDebug() << "SQL执行成功";
+    }
+
     // 判断是否查询到了数据
     if(query.next())
     {
         // 如果查询到了数据，则更新用户的登录状态
-        strSql = QString("update userInfo set online = 1 where name = '%1'").arg(name);
+        strSql = QString("update usrInfo set online = 1 where name = '%1'").arg(name);
         query.exec(strSql);
         return true;
     }
@@ -95,7 +111,7 @@ void OpeDB::handleOffine(const char *name)
     {
         return;
     }
-    QString strSql = QString("update userInfo set online = 0 where name = '%1'").arg(name);
+    QString strSql = QString("update usrInfo set online = 0 where name = '%1'").arg(name);
     QSqlQuery query;
     // 执行更新操作
     query.exec(strSql);
@@ -103,7 +119,7 @@ void OpeDB::handleOffine(const char *name)
 
 QStringList OpeDB::handleAllOnline()
 {
-    QString strSql = QString("select name from userInfo where online = 1");
+    QString strSql = QString("select name from usrInfo where online = 1");
     QSqlQuery query;
     // 执行操作
     query.exec(strSql);
@@ -123,7 +139,7 @@ int OpeDB::handleSearchUser(const char *name)
     {
         return -1;
     }
-    QString strSql = QString("select online from userInfo where name = '%1'").arg(name);
+    QString strSql = QString("select online from usrInfo where name = '%1'").arg(name);
     QSqlQuery query;
     // 执行操作
     query.exec(strSql);
@@ -147,13 +163,13 @@ int OpeDB::handleAddfriendCheck(const char *friendName, const char *loginName)
         // 输入内容格式错误
         return -1;
     }
-    QString strSql = QString("select id from userInfo where name = '%1'").arg(friendName);
+    QString strSql = QString("select id from usrInfo where name = '%1'").arg(friendName);
     QSqlQuery query;
     query.exec(strSql);
     if(query.next())
     {
         int friendId = query.value(0).toInt();
-        strSql = QString("select id from userInfo where name = '%1'").arg(loginName);
+        strSql = QString("select id from usrInfo where name = '%1'").arg(loginName);
         query.exec(strSql);
         query.next();
         int loginId = query.value(0).toInt();
@@ -166,7 +182,7 @@ int OpeDB::handleAddfriendCheck(const char *friendName, const char *loginName)
         }
         else
         {
-            strSql = QString("select online from userInfo where id = '%1'").arg(friendId);
+            strSql = QString("select online from usrInfo where id = '%1'").arg(friendId);
             query.exec(strSql);
             query.next();
             int online = query.value(0).toInt();
@@ -193,13 +209,13 @@ int OpeDB::handleAddfriendCheck(const char *friendName, const char *loginName)
 void OpeDB::handleAddfriend(const char *friendName, const char *loginName)
 {
     // 获取好友id
-    QString strSql = QString("select id from userInfo where name = '%1'").arg(friendName);
+    QString strSql = QString("select id from usrInfo where name = '%1'").arg(friendName);
     QSqlQuery query;
     query.exec(strSql);
     query.next();
     int friendId = query.value(0).toInt();
     // 获取登录用户id
-    strSql = QString("select id from userInfo where name = '%1'").arg(loginName);
+    strSql = QString("select id from usrInfo where name = '%1'").arg(loginName);
     query.exec(strSql);
     query.next();
     int loginId = query.value(0).toInt();
@@ -218,7 +234,7 @@ QStringList OpeDB::handleFlushFriend(const char *name)
         return strNameList;
     }
 
-    QString strSql = QString("select id from userInfo where name = '%1'").arg(name);
+    QString strSql = QString("select id from usrInfo where name = '%1'").arg(name);
     QSqlQuery query;
     query.exec(strSql);
     query.next();
@@ -229,7 +245,7 @@ QStringList OpeDB::handleFlushFriend(const char *name)
     while(query.next())
     {
         int friendId = query.value(0).toInt();
-        strSql = QString("select name from userInfo where id = '%1' and online = 1").arg(friendId);
+        strSql = QString("select name from usrInfo where id = '%1' and online = 1").arg(friendId);
         QSqlQuery nameQuery;
         nameQuery.exec(strSql);
         if(nameQuery.next())
@@ -246,12 +262,12 @@ void OpeDB::handleDeletefriend(const char *friendName, const char *loginName)
     {
         return ;
     }
-    QString strSql = QString("select id from userInfo where name = '%1'").arg(friendName);
+    QString strSql = QString("select id from usrInfo where name = '%1'").arg(friendName);
     QSqlQuery query;
     query.exec(strSql);
     query.next();
     int friendId = query.value(0).toInt();
-    strSql = QString("select id from userInfo where name = '%1'").arg(loginName);
+    strSql = QString("select id from usrInfo where name = '%1'").arg(loginName);
     query.exec(strSql);
     query.next();
     int userId = query.value(0).toInt();

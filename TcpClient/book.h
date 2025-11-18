@@ -9,6 +9,7 @@
 #include"protocol.h"
 #include<QTimer>
 #include<QFile>
+#include <QSettings>
 
 class Book : public QWidget
 {
@@ -22,6 +23,11 @@ public:
     QString getSaveFilePath();
     void updateLocalDownloadFileName();//更新本地下载文件的文件名称
     QString getShareFileName();
+
+    qint64 getUploadOffset(const QString &fileName); //获取已经偏移量
+    void saveUploadOffset(const QString &fileName, qint64 offset); //保存偏移量
+    void clearUploadOffset(const QString &fileName); //清除偏移量
+
     qint64 m_iTotal;//下载文件的总字节大小
     qint64 m_iRevice;//下载文件目前接受到文件的大小
     QFile m_pFile;//用于本地下载文件使用
@@ -40,6 +46,8 @@ public slots:
     void uploadPre();
     // 真实发送文件
     void uploadFileData();
+    //断点新传
+    void startUpload(const QString &fileName, qint64 fileSize, qint64 offset = 0);
     void delFile();
     void downloadFile();
     void shareFile();
@@ -67,6 +75,11 @@ private:
     QString m_strMoveFileName;//要移动的文件名
     QString m_strMoveFilePath;//要移动的文件全路径
     QString m_strSelectDestDirPath;//要移动到的目标目录
+
+    QSettings *m_settings;// 用于持久化断点
+    QString m_currentUploadFileName;   // 当前正在上传的文件名
+    qint64 m_currentUploadFileSize;     // 文件总大小（字节）
+    qint64 m_currentUploadOffset;       // 已上传偏移量（断点位置）
 };
 
 #endif // BOOK_H

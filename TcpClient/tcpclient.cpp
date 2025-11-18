@@ -2,6 +2,7 @@
 #include "ui_tcpclient.h"
 #include"privatechat.h"
 #include<QFile>
+#include "utils.h"
 
 TcpClient::TcpClient(QWidget *parent) :
     QWidget(parent),
@@ -100,6 +101,7 @@ void TcpClient::regist(PDU *pdu) {
 
 void TcpClient::login(PDU *pdu)
 {
+//    qDebug()<< pdu->caMsg;
     if(0 == strcmp(pdu->caData, LOGIN_OK))
     {
         m_strCurPath = QString("./%1").arg(m_strLoginName);
@@ -434,16 +436,20 @@ void TcpClient::on_login_pb_clicked()
     QString strName = ui->name_le->text();
     QString strPwd = ui->pwd_le->text();
     // 账号密码不为空时才能登录
+    qDebug()<<"onLogin::" << strName<<strPwd;
     if(!strName.isEmpty() && !strPwd.isEmpty())
     {
         // 保存登录用户的名称
         m_strLoginName = strName;
+        //哈希密码
+        QString hashedPassword = utils::sha256(strPwd);
+
         PDU *pdu = mkPDU(0);
         pdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_REQUEST;
         // 前32个字符复制账号名
         strncpy(pdu->caData, strName.toStdString().c_str(), 32);
         // 后32个字符复制密码
-        strncpy(pdu->caData + 32, strPwd.toStdString().c_str(), 32);
+        strncpy(pdu->caData + 32, hashedPassword.toStdString().c_str(), 32);
         // 发送通信对象给服务器
         m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
         // 释放内存
@@ -465,10 +471,12 @@ void TcpClient::on_regist_pb_clicked()
     {
         PDU *pdu = mkPDU(0);
         pdu->uiMsgType = ENUM_MSG_TYPE_REGIST_REQUEST;
+        //hash
+        QString hashPwd= utils::sha256(strPwd);
         // 前32个字符复制账号名
         strncpy(pdu->caData, strName.toStdString().c_str(), 32);
         // 后32个字符复制密码
-        strncpy(pdu->caData + 32, strPwd.toStdString().c_str(), 32);
+        strncpy(pdu->caData + 32, hashPwd.toStdString().c_str(), 32);
         // 发送通信对象给服务器
         m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
         // 释放内存
