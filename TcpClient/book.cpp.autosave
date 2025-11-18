@@ -351,10 +351,10 @@ void Book::uploadFileData()
 
         totalSent += buffer.size();
 
-        // === 持久化当前进度（关键！）===
+        // === 持久化当前进度===
         saveUploadOffset(m_currentUploadFileName, totalSent);
 
-        // 可选：更新 UI 进度条（如果你加了）
+        // 可选：更新 UI 进度条
         // emit uploadProgress(totalSent, m_currentUploadFileSize);
     }
 
